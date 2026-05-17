@@ -1,0 +1,546 @@
+// Recipe to Order - Prisma Schema
+// Database: Neon DB (PostgreSQL)
+// ORM: Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =====================================================
+// USER & AUTH
+// =====================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  password      String? // hashed; null if OAuth only
+  locale        String    @default("th") // "th" or "en"
+
+  accounts Account[]
+  sessions Session[]
+
+  recipes        Recipe[]
+  ingredients    Ingredient[]
+  categories     Category[]
+  purchasePlans  PurchasePlan[]
+  sales          Sale[]
+  prepProductions PrepProduction[]
+  stockMovements StockMovement[]
+  importLogs     ImportLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// NextAuth.js models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// =====================================================
+// CATEGORY
+// =====================================================
+
+model Category {
+  id     String   @id @default(cuid())
+  name   String
+  nameEn String?
+  color  String? // hex code for UI
+  icon   String? // emoji or icon name
+  order  Int      @default(0)
+
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipes Recipe[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// =====================================================
+// INGREDIENT
+// =====================================================
+
+enum IngredientType {
+  RAW // ของซื้อจากตลาด เช่น นมสด เมล็ดกาแฟ
+  PREP // ของเตรียมเอง เช่น นมมิกซ์จืด ไซรัป
+}
+
+model Ingredient {
+  id            String         @id @default(cuid())
+  name          String
+  nameEn        String?
+  type          IngredientType @default(RAW)
+  baseUnit      String // หน่วยมาตรฐาน: g, ml, kg, l, oz, lb, fl_oz, tsp, tbsp, cup, piece
+
+  // Shelf life (วัน) หลังเตรียม/เปิดใช้
+  shelfLifeDays Int?
+
+  // Stock alert
+  minStockAlert Float?
+
+  // Image
+  imageUrl String?
+  imageKey String? // for deletion
+
+  // PREP type only: link กับ Prep Recipe
+  prepRecipeId String? @unique
+  prepRecipe   Recipe? @relation("PrepRecipeOutput", fields: [prepRecipeId], references: [id])
+
+  // Default variant (สำหรับคำนวณราคา)
+  defaultVariantId String?             @unique
+  defaultVariant   IngredientVariant? @relation("DefaultVariant", fields: [defaultVariantId], references: [id])
+
+  // Relations
+  variants       IngredientVariant[] @relation("AllVariants")
+  recipeItems    RecipeIngredient[]
+  batches        StockBatch[]
+  stockMovements StockMovement[]
+  prepConsumptions PrepConsumption[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+}
+
+// Variants สำหรับเปรียบเทียบราคา/ยี่ห้อ
+model IngredientVariant {
+  id           String @id @default(cuid())
+  ingredientId String
+
+  brand            String // เช่น "Mali", "ออคิด"
+  packageSize      Float // เช่น 1000
+  packageUnit      String // เช่น "ml"
+  price            Float // ราคาต่อแพ็ค (บาท)
+  pricePerBaseUnit Float // คำนวณอัตโนมัติ (บาท / baseUnit)
+  supplier         String? // ร้านที่ซื้อ
+  note             String?
+
+  ingredient   Ingredient  @relation("AllVariants", fields: [ingredientId], references: [id], onDelete: Cascade)
+  isDefaultFor Ingredient? @relation("DefaultVariant")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ingredientId])
+}
+
+// =====================================================
+// RECIPE
+// =====================================================
+
+enum RecipeType {
+  SALE // สูตรขาย (มี sizes)
+  PREP // สูตรเตรียม (มี yield + shelf life)
+}
+
+model Recipe {
+  id           String     @id @default(cuid())
+  name         String
+  nameEn       String?
+  recipeType   RecipeType @default(SALE)
+  description  String?    @db.Text
+  notes        String?    @db.Text
+  sellPrice    Float?
+
+  // Image
+  imageUrl String?
+  imageKey String?
+
+  // PREP only fields
+  yieldQuantity   Float?
+  yieldUnit       String?
+
+  // SALE only: category
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // PREP: link กลับไปยัง ingredient ที่มันสร้าง
+  outputIngredient Ingredient? @relation("PrepRecipeOutput")
+
+  // Relations
+  sizes              RecipeSize[] // สำหรับ SALE recipe
+  prepIngredients    RecipeIngredient[] @relation("PrepRecipeIngredients") // สำหรับ PREP recipe
+  prepSteps          RecipeStep[] @relation("PrepRecipeSteps")
+  prepProductions    PrepProduction[]
+  saleItems          SaleItem[]   // ใช้ตอนบันทึกการขาย (ผ่าน recipeSize)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([recipeType])
+}
+
+// ขนาดของสูตร SALE (12oz, 16oz, 22oz)
+model RecipeSize {
+  id       String @id @default(cuid())
+  recipeId String
+  sizeName String // "16oz", "แก้วเล็ก", "ปกติ"
+  order    Int    @default(0)
+
+  recipe       Recipe              @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredients  RecipeIngredient[]
+  steps        RecipeStep[]
+  planItems    PurchasePlanItem[]
+  saleItems    SaleItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([recipeId])
+}
+
+// วัตถุดิบในสูตร
+// - SALE recipe: link ผ่าน recipeSizeId
+// - PREP recipe: link ตรงกับ prepRecipeId
+model RecipeIngredient {
+  id String @id @default(cuid())
+
+  // อย่างใดอย่างหนึ่ง (เลือก 1)
+  recipeSizeId String?
+  prepRecipeId String?
+
+  ingredientId String
+  quantity     Float
+  unit         String // หน่วยใน recipe (อาจต่างจาก ingredient.baseUnit)
+  note         String?
+  isOptional   Boolean @default(false)
+  order        Int     @default(0)
+
+  recipeSize RecipeSize? @relation(fields: [recipeSizeId], references: [id], onDelete: Cascade)
+  prepRecipe Recipe?     @relation("PrepRecipeIngredients", fields: [prepRecipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient  @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@index([recipeSizeId])
+  @@index([prepRecipeId])
+  @@index([ingredientId])
+}
+
+// ขั้นตอนการทำ (step 1, step 2, ...)
+model RecipeStep {
+  id       String @id @default(cuid())
+  stepNo   Int // 1, 2, 3, ...
+  title    String? // เช่น "ใส่น้ำแข็ง", "เทนมมิกซ์จืด"
+  detail   String? @db.Text
+  imageUrl String?
+
+  // อย่างใดอย่างหนึ่ง
+  recipeSizeId String?
+  prepRecipeId String?
+
+  recipeSize RecipeSize? @relation(fields: [recipeSizeId], references: [id], onDelete: Cascade)
+  prepRecipe Recipe?     @relation("PrepRecipeSteps", fields: [prepRecipeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([recipeSizeId])
+  @@index([prepRecipeId])
+}
+
+// =====================================================
+// STOCK & BATCH
+// =====================================================
+
+enum BatchSource {
+  PURCHASED // ซื้อมา (RAW)
+  PREPARED // เตรียมเอง (PREP)
+  MANUAL_ADJUST // ปรับยอดเอง
+  IMPORTED // นำเข้าจาก Excel
+}
+
+enum BatchStatus {
+  ACTIVE // ใช้งานได้
+  EXPIRED // หมดอายุ (auto)
+  DEPLETED // ใช้หมดแล้ว
+  DISCARDED // ทิ้ง (เสีย/ไม่ใช้)
+}
+
+model StockBatch {
+  id           String @id @default(cuid())
+  ingredientId String
+
+  quantity        Float // ปริมาณคงเหลือใน batch นี้ (ในหน่วย baseUnit)
+  initialQuantity Float // ปริมาณตอนสร้าง
+
+  preparedAt DateTime  @default(now()) // วันที่เตรียม/นำเข้า
+  expiresAt  DateTime? // วันที่หมดอายุ (preparedAt + shelfLifeDays)
+
+  source BatchSource @default(PURCHASED)
+
+  // ถ้ามาจาก prep production
+  prepProductionId String?
+  prepProduction   PrepProduction? @relation(fields: [prepProductionId], references: [id], onDelete: SetNull)
+
+  // ถ้ามาจากซื้อ ระบุ variant ที่ซื้อ
+  variantId String?
+
+  // ราคารวมตอนซื้อ (บาท)
+  totalCost Float?
+
+  status BatchStatus @default(ACTIVE)
+  notes  String?
+
+  ingredient Ingredient      @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  movements  StockMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ingredientId])
+  @@index([expiresAt])
+  @@index([status])
+}
+
+enum MovementType {
+  IN // นำเข้า (ซื้อ)
+  PREP_IN // เตรียมเสร็จ
+  OUT // ใช้ออก (ขาย)
+  PREP_OUT // ใช้ไปเตรียม prep
+  ADJUST // ปรับยอดเอง
+  DISCARD // ทิ้ง (เสีย)
+  EXPIRED // auto-expire
+}
+
+model StockMovement {
+  id           String @id @default(cuid())
+  ingredientId String
+  batchId      String?
+
+  type     MovementType
+  quantity Float // + IN, - OUT (signed)
+  unit     String // baseUnit
+  reason   String?
+
+  // Reference (optional)
+  saleId           String?
+  prepProductionId String?
+
+  ingredient Ingredient  @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  batch      StockBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([ingredientId])
+  @@index([batchId])
+  @@index([userId])
+  @@index([type])
+}
+
+// =====================================================
+// PREP PRODUCTION
+// =====================================================
+
+model PrepProduction {
+  id String @id @default(cuid())
+
+  prepRecipeId    String
+  batchesCount    Int    @default(1) // ทำกี่รอบของสูตร (เช่น 2 รอบ = yield × 2)
+  quantityProduced Float // ปริมาณรวมที่ผลิตได้
+  unit            String // หน่วย
+
+  preparedAt DateTime @default(now())
+  preparedBy String? // ชื่อผู้ทำ (อาจเป็นพนักงาน)
+  notes      String?
+
+  prepRecipe    Recipe            @relation(fields: [prepRecipeId], references: [id], onDelete: Restrict)
+  outputBatches StockBatch[]
+  consumptions  PrepConsumption[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([prepRecipeId])
+  @@index([userId])
+}
+
+// บันทึกว่า prep ครั้งนี้หัก raw ingredient อะไรไปบ้าง
+model PrepConsumption {
+  id               String @id @default(cuid())
+  prepProductionId String
+  ingredientId     String
+  batchId          String? // batch ที่หักจาก (FIFO)
+  quantityUsed     Float
+  unit             String
+
+  prepProduction PrepProduction @relation(fields: [prepProductionId], references: [id], onDelete: Cascade)
+  ingredient     Ingredient     @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@index([prepProductionId])
+}
+
+// =====================================================
+// SALES (Auto-deduct stock)
+// =====================================================
+
+enum SaleStatus {
+  COMPLETED
+  VOIDED
+}
+
+model Sale {
+  id        String     @id @default(cuid())
+  saleNo    String // running number per user เช่น "S-20260517-001"
+  saleDate  DateTime   @default(now())
+  status    SaleStatus @default(COMPLETED)
+  totalAmount Float    @default(0)
+  notes     String?
+
+  items SaleItem[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, saleNo])
+  @@index([userId])
+  @@index([saleDate])
+}
+
+model SaleItem {
+  id           String @id @default(cuid())
+  saleId       String
+  recipeId     String
+  recipeSizeId String
+  quantity     Int // เช่น 10 แก้ว
+  unitPrice    Float
+  totalPrice   Float
+
+  sale       Sale       @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Restrict)
+  recipeSize RecipeSize @relation(fields: [recipeSizeId], references: [id], onDelete: Restrict)
+
+  @@index([saleId])
+}
+
+// =====================================================
+// PURCHASE PLANNING
+// =====================================================
+
+enum PlanStatus {
+  DRAFT
+  PURCHASED
+  CANCELLED
+}
+
+model PurchasePlan {
+  id         String     @id @default(cuid())
+  name       String
+  targetDate DateTime?
+  status     PlanStatus @default(DRAFT)
+  totalCost  Float? // คำนวณรวม
+
+  items PurchasePlanItem[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model PurchasePlanItem {
+  id           String @id @default(cuid())
+  planId       String
+  recipeSizeId String
+  targetQty    Int // เช่น 50 แก้ว
+
+  plan       PurchasePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  recipeSize RecipeSize   @relation(fields: [recipeSizeId], references: [id], onDelete: Restrict)
+
+  @@index([planId])
+}
+
+// =====================================================
+// IMPORT LOGS
+// =====================================================
+
+enum ImportType {
+  RECIPE
+  INGREDIENT
+}
+
+enum ImportStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+model ImportLog {
+  id          String       @id @default(cuid())
+  type        ImportType
+  fileName    String
+  rowsTotal   Int
+  rowsSuccess Int          @default(0)
+  rowsFailed  Int          @default(0)
+  status      ImportStatus
+  errorReport Json?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

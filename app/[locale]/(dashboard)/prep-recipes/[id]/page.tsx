@@ -1,12 +1,10 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPrepRecipe } from "@/lib/actions/prep-recipe";
 import { ProductionForm } from "@/components/prep/ProductionForm";
+import { PrepRecipeActions } from "@/components/prep/PrepRecipeActions";
 
 export default async function PrepRecipeDetailPage({
   params,
@@ -39,11 +37,17 @@ export default async function PrepRecipeDetailPage({
             </Badge>
           </div>
         </div>
-        <Button asChild variant="outline" size="sm" className="gap-1">
-          <Link href={`/prep-recipes/${recipe.id}/edit`}>
-            <Pencil className="h-4 w-4" /> {tCommon("edit")}
-          </Link>
-        </Button>
+        <PrepRecipeActions
+          prepRecipeId={recipe.id}
+          labels={{
+            edit: tCommon("edit"),
+            delete: tCommon("delete"),
+            deleteConfirm: tRecipe("deleteConfirm", { name: recipe.name }),
+            cancel: tCommon("cancel"),
+            confirm: tCommon("confirm"),
+            deleted: tRecipe("deleted"),
+          }}
+        />
       </div>
 
       <Card>

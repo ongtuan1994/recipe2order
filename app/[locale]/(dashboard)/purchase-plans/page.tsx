@@ -2,8 +2,15 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Plus, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { listPurchasePlans } from "@/lib/actions/purchase-plan";
+
+const statusVariant: Record<string, "default" | "secondary" | "outline"> = {
+  DRAFT: "secondary",
+  PURCHASED: "default",
+  CANCELLED: "outline",
+};
 
 export default async function PurchasePlansPage() {
   const t = await getTranslations("purchase");
@@ -31,7 +38,12 @@ export default async function PurchasePlansPage() {
             <Link key={p.id} href={`/purchase-plans/${p.id}`}>
               <Card className="h-full hover:border-foreground/40 transition-colors">
                 <CardHeader>
-                  <h3 className="font-medium">{p.name}</h3>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-medium">{p.name}</h3>
+                    <Badge variant={statusVariant[p.status] ?? "secondary"}>
+                      {t(`status.${p.status.toLowerCase()}` as "status.draft")}
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground space-y-1">
                   {p.targetDate && (
@@ -42,6 +54,11 @@ export default async function PurchasePlansPage() {
                   <p>
                     {p.items.length} {t("items")}
                   </p>
+                  {p.totalCost !== null && (
+                    <p className="text-foreground font-medium">
+                      {t("actualTotal")}: ฿{p.totalCost.toFixed(2)}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </Link>

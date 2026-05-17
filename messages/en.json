@@ -187,7 +187,21 @@
     "inStock": "In stock",
     "toBuy": "Buy",
     "print": "Print",
+    "import": "Import",
+    "importTitle": "Import ingredients into stock",
+    "quantity": "Quantity",
+    "cost": "Cost (THB)",
+    "actualTotal": "Actual total",
+    "imported": "Imported to stock",
+    "nothingToBuy": "Nothing to purchase",
+    "deleteConfirm": "Delete plan \"{name}\"?",
+    "deleted": "Plan deleted",
     "saved": "Plan saved",
-    "emptyList": "No plans yet"
+    "emptyList": "No plans yet",
+    "status": {
+      "draft": "Draft",
+      "purchased": "Purchased",
+      "cancelled": "Cancelled"
+    }
   }
 }

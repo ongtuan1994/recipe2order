@@ -187,7 +187,21 @@
     "inStock": "มีในสต็อก",
     "toBuy": "ต้องซื้อเพิ่ม",
     "print": "พิมพ์",
+    "import": "นำเข้า",
+    "importTitle": "นำเข้าวัตถุดิบเข้าสต็อก",
+    "quantity": "จำนวน",
+    "cost": "ราคา (บาท)",
+    "actualTotal": "ยอดรวมจริง",
+    "imported": "นำเข้าสต็อกแล้ว",
+    "nothingToBuy": "ไม่มีรายการที่ต้องซื้อ",
+    "deleteConfirm": "ลบแผน \"{name}\"?",
+    "deleted": "ลบแผนแล้ว",
     "saved": "บันทึกแผนแล้ว",
-    "emptyList": "ยังไม่มีแผน"
+    "emptyList": "ยังไม่มีแผน",
+    "status": {
+      "draft": "ร่าง",
+      "purchased": "นำเข้าแล้ว",
+      "cancelled": "ยกเลิก"
+    }
   }
 }

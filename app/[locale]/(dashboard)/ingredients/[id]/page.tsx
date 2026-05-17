@@ -1,12 +1,10 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getIngredient } from "@/lib/actions/ingredient";
 import { VariantsPanel } from "@/components/ingredient/VariantsPanel";
+import { IngredientActions } from "@/components/ingredient/IngredientActions";
 
 export default async function IngredientDetailPage({
   params,
@@ -40,11 +38,17 @@ export default async function IngredientDetailPage({
             )}
           </div>
         </div>
-        <Button asChild variant="outline" size="sm" className="gap-1">
-          <Link href={`/ingredients/${ingredient.id}/edit`}>
-            <Pencil className="h-4 w-4" /> {tCommon("edit")}
-          </Link>
-        </Button>
+        <IngredientActions
+          ingredientId={ingredient.id}
+          labels={{
+            edit: tCommon("edit"),
+            delete: tCommon("delete"),
+            deleteConfirm: t("deleteConfirm", { name: ingredient.name }),
+            cancel: tCommon("cancel"),
+            confirm: tCommon("confirm"),
+            deleted: t("deleted"),
+          }}
+        />
       </div>
 
       {ingredient.minStockAlert && (

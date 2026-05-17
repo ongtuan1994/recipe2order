@@ -28,7 +28,10 @@ import {
   purchasePlanSchema,
   type PurchasePlanInput,
 } from "@/lib/validations/purchase-plan";
-import { createPurchasePlan } from "@/lib/actions/purchase-plan";
+import {
+  createPurchasePlan,
+  updatePurchasePlan,
+} from "@/lib/actions/purchase-plan";
 
 export interface PlanSizeOption {
   id: string;
@@ -51,16 +54,21 @@ interface Labels {
 export function PurchasePlanForm({
   sizes,
   labels,
+  planId,
+  initialValues,
 }: {
   sizes: PlanSizeOption[];
   labels: Labels;
+  planId?: string;
+  initialValues?: PurchasePlanInput;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const isEdit = Boolean(planId);
 
   const form = useForm<PurchasePlanInput>({
     resolver: zodResolver(purchasePlanSchema) as unknown as Resolver<PurchasePlanInput>,
-    defaultValues: {
+    defaultValues: initialValues ?? {
       name: "",
       targetDate: "",
       items: [{ recipeSizeId: sizes[0]?.id ?? "", targetQty: 10 }],
@@ -71,7 +79,9 @@ export function PurchasePlanForm({
 
   const onSubmit = (values: PurchasePlanInput) => {
     startTransition(async () => {
-      const res = await createPurchasePlan(values);
+      const res = isEdit && planId
+        ? await updatePurchasePlan(planId, values)
+        : await createPurchasePlan(values);
       if (!res.ok) {
         toast.error(res.error);
         return;

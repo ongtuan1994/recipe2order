@@ -68,17 +68,19 @@ export default async function DashboardLayout({
         </div>
       </aside>
       <div className="flex flex-1 flex-col">{children}</div>
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-4 border-t bg-card">
-        {NAV_ITEMS.slice(0, 4).map(({ href, icon: Icon, key }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex flex-col items-center gap-1 py-2 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <Icon className="h-5 w-5" />
-            {t(key)}
-          </Link>
-        ))}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-card overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-w-full w-max">
+          {NAV_ITEMS.map(({ href, icon: Icon, key }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex flex-1 min-w-[72px] flex-col items-center gap-1 py-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Icon className="h-5 w-5" />
+              <span className="whitespace-nowrap">{t(key)}</span>
+            </Link>
+          ))}
+        </div>
       </nav>
     </div>
   );

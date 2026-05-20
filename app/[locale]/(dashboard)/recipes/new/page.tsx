@@ -24,6 +24,7 @@ export default async function NewRecipePage() {
           sellPrice: undefined,
           description: "",
           notes: "",
+          imageUrl: "",
           sizes: [
             {
               sizeName: "",

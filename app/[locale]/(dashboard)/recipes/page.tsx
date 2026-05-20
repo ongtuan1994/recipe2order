@@ -47,6 +47,7 @@ export default async function RecipesPage() {
                 name: r.name,
                 nameEn: r.nameEn,
                 sellPrice: r.sellPrice,
+                imageUrl: r.imageUrl,
                 category: r.category
                   ? { id: r.category.id, name: r.category.name, color: r.category.color }
                   : null,

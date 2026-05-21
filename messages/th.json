@@ -147,7 +147,9 @@
     "producedQty": "ปริมาณที่ทำได้จริง",
     "produced": "เตรียมสำเร็จ",
     "noPrepIngredient": "ต้องสร้าง PREP ingredient ก่อน (Ingredients > +New > PREP)",
-    "emptyList": "ยังไม่มีสูตรเตรียม"
+    "emptyList": "ยังไม่มีสูตรเตรียม",
+    "usedIn": "ใช้ในเมนู",
+    "notUsedYet": "ยังไม่ถูกใช้ในเมนูไหน"
   },
   "capacity": {
     "title": "กำลังผลิต",

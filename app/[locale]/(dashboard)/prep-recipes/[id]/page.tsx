@@ -1,8 +1,13 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getPrepRecipe, getPrepRecipeNeighbors } from "@/lib/actions/prep-recipe";
+import {
+  getPrepRecipe,
+  getPrepRecipeNeighbors,
+  getSaleRecipesUsingPrep,
+} from "@/lib/actions/prep-recipe";
 import { ProductionForm } from "@/components/prep/ProductionForm";
 import { PrepRecipeActions } from "@/components/prep/PrepRecipeActions";
 import { DetailPager } from "@/components/shared/DetailPager";
@@ -13,9 +18,10 @@ export default async function PrepRecipeDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [recipe, neighbors, t, tRecipe, tCommon] = await Promise.all([
+  const [recipe, neighbors, usedIn, t, tRecipe, tCommon] = await Promise.all([
     getPrepRecipe(id),
     getPrepRecipeNeighbors(id),
+    getSaleRecipesUsingPrep(id),
     getTranslations("prep"),
     getTranslations("recipe"),
     getTranslations("common"),
@@ -59,6 +65,42 @@ export default async function PrepRecipeDetailPage({
           }}
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            {t("usedIn")} ({usedIn.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {usedIn.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("notUsedYet")}</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {usedIn.map((r) => (
+                <Link
+                  key={r.id}
+                  href={`/recipes/${r.id}`}
+                  prefetch
+                  className="inline-flex items-center"
+                >
+                  <Badge
+                    variant="outline"
+                    className="hover:bg-muted cursor-pointer"
+                    style={
+                      r.category?.color
+                        ? { borderColor: r.category.color, color: r.category.color }
+                        : undefined
+                    }
+                  >
+                    {r.name}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

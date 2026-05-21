@@ -147,7 +147,9 @@
     "producedQty": "Actual produced quantity",
     "produced": "Prepared successfully",
     "noPrepIngredient": "Create a PREP ingredient first (Ingredients > + New > PREP)",
-    "emptyList": "No prep recipes yet"
+    "emptyList": "No prep recipes yet",
+    "usedIn": "Used in",
+    "notUsedYet": "Not used in any sale recipe yet"
   },
   "capacity": {
     "title": "Capacity",

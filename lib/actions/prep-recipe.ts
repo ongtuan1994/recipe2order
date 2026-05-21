@@ -40,6 +40,36 @@ export async function getPrepRecipeNeighbors(currentId: string) {
   };
 }
 
+/**
+ * Returns sale recipes that reference this prep recipe's output ingredient
+ * in any of their sizes. Joins via Ingredient.prepRecipeId so this can
+ * run in parallel with getPrepRecipe.
+ */
+export async function getSaleRecipesUsingPrep(prepRecipeId: string) {
+  const userId = await getCurrentUserId();
+  return prisma.recipe.findMany({
+    where: {
+      userId,
+      isDeleted: false,
+      recipeType: RecipeType.SALE,
+      sizes: {
+        some: {
+          ingredients: {
+            some: { ingredient: { prepRecipeId } },
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      nameEn: true,
+      category: { select: { name: true, color: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+}
+
 export async function getPrepRecipe(id: string) {
   const userId = await getCurrentUserId();
   return prisma.recipe.findFirst({

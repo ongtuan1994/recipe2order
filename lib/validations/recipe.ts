@@ -31,7 +31,6 @@ export const saleRecipeSchema = z.object({
   sellPrice: z.coerce.number().positive().optional().or(z.nan()),
   description: z.string().max(1000).optional().or(z.literal("")),
   notes: z.string().max(2000).optional().or(z.literal("")),
-  imageUrl: z.string().url().optional().or(z.literal("")),
   sizes: z.array(recipeSizeSchema).min(1, "At least one size is required"),
 });
 

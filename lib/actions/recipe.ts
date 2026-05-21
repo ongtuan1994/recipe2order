@@ -112,7 +112,6 @@ export async function createRecipe(input: SaleRecipeInput): Promise<RecipeMutati
       notes: data.notes || null,
       sellPrice: normaliseSellPrice(data.sellPrice),
       categoryId: data.categoryId || null,
-      imageUrl: data.imageUrl || null,
       userId,
       sizes: { create: buildSizesCreate(data.sizes) },
     },
@@ -156,7 +155,6 @@ export async function updateRecipe(
         notes: data.notes || null,
         sellPrice: normaliseSellPrice(data.sellPrice),
         categoryId: data.categoryId || null,
-        imageUrl: data.imageUrl || null,
         sizes: { create: buildSizesCreate(data.sizes) },
       },
     }),
@@ -201,7 +199,6 @@ export async function duplicateRecipeAction(id: string, locale: string) {
       notes: source.notes,
       sellPrice: source.sellPrice,
       categoryId: source.categoryId,
-      imageUrl: source.imageUrl,
       userId,
       sizes: {
         create: source.sizes.map((s) => ({

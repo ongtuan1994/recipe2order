@@ -34,7 +34,6 @@ export default async function EditRecipePage({
           sellPrice: recipe.sellPrice ?? undefined,
           description: recipe.description ?? "",
           notes: recipe.notes ?? "",
-          imageUrl: recipe.imageUrl ?? "",
           sizes: recipe.sizes.map((s) => ({
             sizeName: s.sizeName,
             ingredients: s.ingredients.map((i) => ({

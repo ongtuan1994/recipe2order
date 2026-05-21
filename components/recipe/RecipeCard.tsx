@@ -1,5 +1,3 @@
-import Image from "next/image";
-import { ChefHat } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +8,6 @@ interface Props {
     name: string;
     nameEn: string | null;
     sellPrice: number | null;
-    imageUrl: string | null;
     category: { id: string; name: string; color: string | null } | null;
     sizes: { id: string; sizeName: string }[];
   };
@@ -22,21 +19,6 @@ export function RecipeCard({ recipe }: Props) {
       <Card className="h-full hover:border-foreground/40 transition-colors">
         <CardHeader>
           <div className="flex items-start gap-3">
-            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border bg-muted">
-              {recipe.imageUrl ? (
-                <Image
-                  src={recipe.imageUrl}
-                  alt=""
-                  fill
-                  sizes="56px"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                  <ChefHat className="h-5 w-5" />
-                </div>
-              )}
-            </div>
             <div className="min-w-0 flex-1">
               <h3 className="font-medium leading-tight truncate">{recipe.name}</h3>
               {recipe.nameEn && (

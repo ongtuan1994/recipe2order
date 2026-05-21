@@ -31,7 +31,6 @@ import {
   type SaleRecipeInput,
 } from "@/lib/validations/recipe";
 import { createRecipe, updateRecipe } from "@/lib/actions/recipe";
-import { ImageUpload } from "@/components/shared/ImageUpload";
 import { RecipeSizeFields } from "./RecipeSizeFields";
 import { NewCategoryDialog } from "./NewCategoryDialog";
 
@@ -54,10 +53,6 @@ export interface RecipeFormLabels {
   sellPrice: string;
   description: string;
   notes: string;
-  image: string;
-  uploadImage: string;
-  removeImage: string;
-  uploadFailed: string;
   sizes: string;
   addSize: string;
   sizeName: string;
@@ -134,28 +129,6 @@ export function RecipeForm({
           {/* Basics */}
           <Card>
             <CardContent className="space-y-4 pt-6">
-              <FormField
-                control={form.control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{labels.image}</FormLabel>
-                    <FormControl>
-                      <ImageUpload
-                        value={field.value ?? null}
-                        onChange={(url) => field.onChange(url ?? "")}
-                        folder="recipes"
-                        labels={{
-                          upload: labels.uploadImage,
-                          remove: labels.removeImage,
-                          uploadFailed: labels.uploadFailed,
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <div className="grid gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}

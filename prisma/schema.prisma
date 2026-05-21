@@ -21,7 +21,6 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   name          String?
-  image         String?
   password      String? // hashed; null if OAuth only
   locale        String    @default("th") // "th" or "en"
 
@@ -121,10 +120,6 @@ model Ingredient {
   // Stock alert
   minStockAlert Float?
 
-  // Image
-  imageUrl String?
-  imageKey String? // for deletion
-
   // PREP type only: link กับ Prep Recipe
   prepRecipeId String? @unique
   prepRecipe   Recipe? @relation("PrepRecipeOutput", fields: [prepRecipeId], references: [id])
@@ -190,10 +185,6 @@ model Recipe {
   description  String?    @db.Text
   notes        String?    @db.Text
   sellPrice    Float?
-
-  // Image
-  imageUrl String?
-  imageKey String?
 
   // PREP only fields
   yieldQuantity   Float?
@@ -275,7 +266,6 @@ model RecipeStep {
   stepNo   Int // 1, 2, 3, ...
   title    String? // เช่น "ใส่น้ำแข็ง", "เทนมมิกซ์จืด"
   detail   String? @db.Text
-  imageUrl String?
 
   // อย่างใดอย่างหนึ่ง
   recipeSizeId String?

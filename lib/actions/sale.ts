@@ -12,11 +12,16 @@ export async function listSales() {
   const userId = await getCurrentUserId();
   return prisma.sale.findMany({
     where: { userId },
-    include: {
+    select: {
+      id: true,
+      saleNo: true,
+      saleDate: true,
+      totalAmount: true,
       items: {
-        include: {
-          recipe: { select: { id: true, name: true } },
-          recipeSize: { select: { id: true, sizeName: true } },
+        select: {
+          quantity: true,
+          recipe: { select: { name: true } },
+          recipeSize: { select: { sizeName: true } },
         },
       },
     },

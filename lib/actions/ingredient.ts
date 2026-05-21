@@ -25,9 +25,14 @@ export async function listIngredients() {
   const userId = await getCurrentUserId();
   return prisma.ingredient.findMany({
     where: { userId, isDeleted: false },
-    include: {
-      defaultVariant: true,
-      _count: { select: { variants: true, batches: true } },
+    select: {
+      id: true,
+      name: true,
+      nameEn: true,
+      type: true,
+      baseUnit: true,
+      defaultVariant: { select: { pricePerBaseUnit: true } },
+      _count: { select: { batches: true } },
     },
     orderBy: [{ type: "asc" }, { name: "asc" }],
   });

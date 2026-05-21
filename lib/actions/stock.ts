@@ -15,32 +15,30 @@ export async function listStock() {
   const userId = await getCurrentUserId();
   const ingredients = await prisma.ingredient.findMany({
     where: { userId, isDeleted: false },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      baseUnit: true,
+      minStockAlert: true,
       batches: {
         where: { status: "ACTIVE" },
         orderBy: [{ expiresAt: "asc" }, { createdAt: "asc" }],
+        select: {
+          id: true,
+          quantity: true,
+          initialQuantity: true,
+          preparedAt: true,
+          expiresAt: true,
+          source: true,
+        },
       },
     },
     orderBy: [{ type: "asc" }, { name: "asc" }],
   });
   return ingredients.map((i) => ({
-    id: i.id,
-    name: i.name,
-    nameEn: i.nameEn,
-    type: i.type,
-    baseUnit: i.baseUnit,
-    minStockAlert: i.minStockAlert,
-    shelfLifeDays: i.shelfLifeDays,
+    ...i,
     totalActive: i.batches.reduce((sum, b) => sum + b.quantity, 0),
-    batches: i.batches.map((b) => ({
-      id: b.id,
-      quantity: b.quantity,
-      initialQuantity: b.initialQuantity,
-      preparedAt: b.preparedAt,
-      expiresAt: b.expiresAt,
-      source: b.source,
-      notes: b.notes,
-    })),
   }));
 }
 

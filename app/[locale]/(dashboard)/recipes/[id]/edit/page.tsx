@@ -12,8 +12,8 @@ export default async function EditRecipePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const t = await getTranslations("recipe");
-  const [recipe, categories, ingredients, labels] = await Promise.all([
+  const [t, recipe, categories, ingredients, labels] = await Promise.all([
+    getTranslations("recipe"),
     getSaleRecipe(id),
     listCategories(),
     listIngredientsForPicker(),

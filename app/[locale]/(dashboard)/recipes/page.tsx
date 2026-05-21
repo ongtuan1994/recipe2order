@@ -6,9 +6,11 @@ import { listSaleRecipes } from "@/lib/actions/recipe";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 
 export default async function RecipesPage() {
-  const t = await getTranslations("recipe");
-  const tCommon = await getTranslations("common");
-  const recipes = await listSaleRecipes();
+  const [t, tCommon, recipes] = await Promise.all([
+    getTranslations("recipe"),
+    getTranslations("common"),
+    listSaleRecipes(),
+  ]);
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 space-y-6">

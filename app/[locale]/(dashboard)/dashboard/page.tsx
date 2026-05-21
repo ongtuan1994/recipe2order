@@ -20,10 +20,12 @@ function daysUntil(d: Date): number {
 }
 
 export default async function DashboardPage() {
-  const t = await getTranslations("nav");
-  const tStock = await getTranslations("stock");
-  const tSale = await getTranslations("sale");
-  const s = await getDashboardSummary();
+  const [t, tStock, tSale, s] = await Promise.all([
+    getTranslations("nav"),
+    getTranslations("stock"),
+    getTranslations("sale"),
+    getDashboardSummary(),
+  ]);
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 space-y-6">

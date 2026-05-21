@@ -13,9 +13,11 @@ import { capacityForAllSaleSizes } from "@/lib/stock/capacity";
 import { getCurrentUserId } from "@/lib/auth-helpers";
 
 export default async function CapacityPage() {
-  const t = await getTranslations("capacity");
   const userId = await getCurrentUserId();
-  const items = await capacityForAllSaleSizes(userId);
+  const [t, items] = await Promise.all([
+    getTranslations("capacity"),
+    capacityForAllSaleSizes(userId),
+  ]);
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 space-y-6">

@@ -9,11 +9,12 @@ export default async function EditIngredientPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const ingredient = await getIngredient(id);
+  const [ingredient, t, tCommon] = await Promise.all([
+    getIngredient(id),
+    getTranslations("ingredient"),
+    getTranslations("common"),
+  ]);
   if (!ingredient) notFound();
-
-  const t = await getTranslations("ingredient");
-  const tCommon = await getTranslations("common");
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 max-w-3xl space-y-6">

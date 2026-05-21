@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { listPrepRecipes } from "@/lib/actions/prep-recipe";
 
 export default async function PrepRecipesPage() {
-  const t = await getTranslations("prep");
-  const items = await listPrepRecipes();
+  const [t, items] = await Promise.all([
+    getTranslations("prep"),
+    listPrepRecipes(),
+  ]);
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 space-y-6">

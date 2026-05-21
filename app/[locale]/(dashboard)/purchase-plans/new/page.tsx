@@ -3,9 +3,11 @@ import { PurchasePlanForm } from "@/components/purchase/PurchasePlanForm";
 import { listSaleRecipeSizes } from "@/lib/actions/sale";
 
 export default async function NewPurchasePlanPage() {
-  const t = await getTranslations("purchase");
-  const tCommon = await getTranslations("common");
-  const sizes = await listSaleRecipeSizes();
+  const [t, tCommon, sizes] = await Promise.all([
+    getTranslations("purchase"),
+    getTranslations("common"),
+    listSaleRecipeSizes(),
+  ]);
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 max-w-3xl space-y-6">

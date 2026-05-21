@@ -147,8 +147,8 @@ model Ingredient {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId])
-  @@index([type])
+  // Composite covers the main list pattern: filter by userId + isDeleted (+ optional type).
+  @@index([userId, isDeleted, type])
 }
 
 // Variants สำหรับเปรียบเทียบราคา/ยี่ห้อ
@@ -220,8 +220,8 @@ model Recipe {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId])
-  @@index([recipeType])
+  // Composite covers SALE/PREP list queries that always filter on userId + isDeleted.
+  @@index([userId, recipeType, isDeleted])
 }
 
 // ขนาดของสูตร SALE (12oz, 16oz, 22oz)
@@ -339,9 +339,10 @@ model StockBatch {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([ingredientId])
-  @@index([expiresAt])
-  @@index([status])
+  // FIFO lookup: filter by ingredient + ACTIVE, order by expiresAt.
+  @@index([ingredientId, status, expiresAt])
+  // Cron job scans ACTIVE batches by expiry date.
+  @@index([status, expiresAt])
 }
 
 enum MovementType {
@@ -452,8 +453,8 @@ model Sale {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, saleNo])
-  @@index([userId])
-  @@index([saleDate])
+  // Dashboard "today" + sales list both filter by userId + saleDate range.
+  @@index([userId, saleDate])
 }
 
 model SaleItem {

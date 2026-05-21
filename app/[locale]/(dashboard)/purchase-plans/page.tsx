@@ -13,8 +13,10 @@ const statusVariant: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export default async function PurchasePlansPage() {
-  const t = await getTranslations("purchase");
-  const plans = await listPurchasePlans();
+  const [t, plans] = await Promise.all([
+    getTranslations("purchase"),
+    listPurchasePlans(),
+  ]);
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 space-y-6">

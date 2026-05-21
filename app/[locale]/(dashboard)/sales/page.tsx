@@ -14,8 +14,10 @@ import {
 import { listSales } from "@/lib/actions/sale";
 
 export default async function SalesPage() {
-  const t = await getTranslations("sale");
-  const sales = await listSales();
+  const [t, sales] = await Promise.all([
+    getTranslations("sale"),
+    listSales(),
+  ]);
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 space-y-6">

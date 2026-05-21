@@ -5,8 +5,8 @@ import { listAvailablePrepIngredients } from "@/lib/actions/prep-recipe";
 import { buildPrepFormLabels } from "@/lib/prep-form-labels";
 
 export default async function NewPrepRecipePage() {
-  const t = await getTranslations("prep");
-  const [ingredients, prepIngredients, labels] = await Promise.all([
+  const [t, ingredients, prepIngredients, labels] = await Promise.all([
+    getTranslations("prep"),
     listIngredientsForPicker(),
     listAvailablePrepIngredients(),
     buildPrepFormLabels(),

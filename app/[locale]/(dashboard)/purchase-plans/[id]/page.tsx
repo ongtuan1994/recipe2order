@@ -25,11 +25,13 @@ export default async function PurchasePlanDetailPage({
   params: Promise<{ id: string; locale: string }>;
 }) {
   const { id, locale } = await params;
-  const t = await getTranslations("purchase");
-  const tCommon = await getTranslations("common");
-  const plan = await getPurchasePlan(id);
+  const [t, tCommon, plan, list] = await Promise.all([
+    getTranslations("purchase"),
+    getTranslations("common"),
+    getPurchasePlan(id),
+    calculatePlanShoppingList(id),
+  ]);
   if (!plan) notFound();
-  const list = await calculatePlanShoppingList(id);
 
   const isDraft = plan.status === "DRAFT";
   const importableItems = (list?.results ?? []).filter((r) => r.toBuy > 0);

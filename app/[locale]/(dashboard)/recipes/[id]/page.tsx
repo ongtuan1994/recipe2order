@@ -11,11 +11,12 @@ export default async function RecipeDetailPage({
   params: Promise<{ id: string; locale: string }>;
 }) {
   const { id, locale } = await params;
-  const recipe = await getSaleRecipe(id);
+  const [recipe, t, tCommon] = await Promise.all([
+    getSaleRecipe(id),
+    getTranslations("recipe"),
+    getTranslations("common"),
+  ]);
   if (!recipe) notFound();
-
-  const t = await getTranslations("recipe");
-  const tCommon = await getTranslations("common");
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 max-w-4xl space-y-6">

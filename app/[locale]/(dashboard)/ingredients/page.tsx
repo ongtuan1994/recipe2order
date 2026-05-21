@@ -14,8 +14,10 @@ import {
 import { listIngredients } from "@/lib/actions/ingredient";
 
 export default async function IngredientsPage() {
-  const t = await getTranslations("ingredient");
-  const items = await listIngredients();
+  const [t, items] = await Promise.all([
+    getTranslations("ingredient"),
+    listIngredients(),
+  ]);
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 space-y-6">

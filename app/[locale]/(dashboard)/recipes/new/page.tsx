@@ -5,8 +5,8 @@ import { listIngredientsForPicker } from "@/lib/actions/ingredient";
 import { buildRecipeFormLabels } from "@/lib/recipe-form-labels";
 
 export default async function NewRecipePage() {
-  const t = await getTranslations("recipe");
-  const [categories, ingredients, labels] = await Promise.all([
+  const [t, categories, ingredients, labels] = await Promise.all([
+    getTranslations("recipe"),
     listCategories(),
     listIngredientsForPicker(),
     buildRecipeFormLabels(),

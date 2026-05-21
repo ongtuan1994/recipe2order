@@ -30,7 +30,7 @@ export default async function PrepRecipesPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((r) => (
-            <Link key={r.id} href={`/prep-recipes/${r.id}`}>
+            <Link key={r.id} href={`/prep-recipes/${r.id}`} prefetch>
               <Card className="h-full hover:border-foreground/40 transition-colors">
                 <CardHeader>
                   <h3 className="font-medium leading-tight">{r.name}</h3>

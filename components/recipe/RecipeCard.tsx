@@ -29,7 +29,7 @@ export function RecipeCard({ recipe, cogLabel }: Props) {
       ? `${cogLabel} ฿${recipe.cogCost.toFixed(2)} (${recipe.cogPercent.toFixed(1)}%)`
       : undefined;
   return (
-    <Link href={`/recipes/${recipe.id}`} className="block">
+    <Link href={`/recipes/${recipe.id}`} prefetch className="block">
       <Card className="h-full hover:border-foreground/40 transition-colors">
         <CardHeader>
           <div className="flex items-start gap-3">

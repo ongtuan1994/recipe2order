@@ -23,7 +23,7 @@ export function DetailPager({
     <div className="flex items-center justify-between gap-2 text-sm">
       {prevHref ? (
         <Button asChild variant="outline" size="sm" className="gap-1">
-          <Link href={prevHref}>
+          <Link href={prevHref} prefetch>
             <ChevronLeft className="h-4 w-4" />
             {labels.previous}
           </Link>
@@ -41,7 +41,7 @@ export function DetailPager({
 
       {nextHref ? (
         <Button asChild variant="outline" size="sm" className="gap-1">
-          <Link href={nextHref}>
+          <Link href={nextHref} prefetch>
             {labels.next}
             <ChevronRight className="h-4 w-4" />
           </Link>

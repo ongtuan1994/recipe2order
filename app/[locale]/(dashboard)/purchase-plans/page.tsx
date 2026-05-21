@@ -37,7 +37,7 @@ export default async function PurchasePlansPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {plans.map((p) => (
-            <Link key={p.id} href={`/purchase-plans/${p.id}`}>
+            <Link key={p.id} href={`/purchase-plans/${p.id}`} prefetch>
               <Card className="h-full hover:border-foreground/40 transition-colors">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">

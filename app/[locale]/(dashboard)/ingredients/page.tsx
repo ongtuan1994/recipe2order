@@ -69,6 +69,7 @@ export default async function IngredientsPage({
                 <TableCell>
                   <Link
                     href={`/ingredients/${i.id}`}
+                    prefetch
                     className="font-medium hover:underline"
                   >
                     {i.name}

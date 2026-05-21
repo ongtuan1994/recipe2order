@@ -29,9 +29,23 @@ export async function listSaleRecipes(opts: ListRecipesOptions = {}) {
 
   return prisma.recipe.findMany({
     where,
-    include: {
-      category: true,
-      sizes: { select: { id: true, sizeName: true }, orderBy: { order: "asc" } },
+    select: {
+      id: true,
+      name: true,
+      nameEn: true,
+      sellPrice: true,
+      category: { select: { id: true, name: true, color: true } },
+      sizes: {
+        orderBy: { order: "asc" },
+        select: {
+          id: true,
+          sizeName: true,
+          // Pulled so the page can compute cost-of-goods for the first size.
+          ingredients: {
+            select: { ingredientId: true, quantity: true, unit: true },
+          },
+        },
+      },
     },
     orderBy: { updatedAt: "desc" },
   });

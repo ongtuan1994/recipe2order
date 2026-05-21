@@ -2,10 +2,12 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Plus, ChefHat, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getCurrentUserId } from "@/lib/auth-helpers";
 import { listSaleRecipes } from "@/lib/actions/recipe";
 import { listCategories } from "@/lib/actions/category";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { CategoryFilter } from "@/components/recipe/CategoryFilter";
+import { computeSizeCost, getIngredientCostMap } from "@/lib/stock/cost";
 
 export default async function RecipesPage({
   searchParams,
@@ -13,10 +15,12 @@ export default async function RecipesPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
-  const [t, recipes, categories] = await Promise.all([
+  const userId = await getCurrentUserId();
+  const [t, recipes, categories, costs] = await Promise.all([
     getTranslations("recipe"),
     listSaleRecipes({ categoryId: category }),
     listCategories(),
+    getIngredientCostMap(userId),
   ]);
 
   return (
@@ -53,21 +57,33 @@ export default async function RecipesPage({
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {recipes.map((r) => (
-            <RecipeCard
-              key={r.id}
-              recipe={{
-                id: r.id,
-                name: r.name,
-                nameEn: r.nameEn,
-                sellPrice: r.sellPrice,
-                category: r.category
-                  ? { id: r.category.id, name: r.category.name, color: r.category.color }
-                  : null,
-                sizes: r.sizes,
-              }}
-            />
-          ))}
+          {recipes.map((r) => {
+            const firstSize = r.sizes[0];
+            const sizeCost = firstSize
+              ? computeSizeCost(firstSize.ingredients, costs)
+              : null;
+            const cogCost = sizeCost?.complete ? sizeCost.totalCost : null;
+            const cogPercent =
+              cogCost !== null && r.sellPrice && r.sellPrice > 0
+                ? (cogCost / r.sellPrice) * 100
+                : null;
+            return (
+              <RecipeCard
+                key={r.id}
+                cogLabel={t("cog")}
+                recipe={{
+                  id: r.id,
+                  name: r.name,
+                  nameEn: r.nameEn,
+                  sellPrice: r.sellPrice,
+                  category: r.category,
+                  sizes: r.sizes.map((s) => ({ id: s.id, sizeName: s.sizeName })),
+                  cogPercent,
+                  cogCost,
+                }}
+              />
+            );
+          })}
         </div>
       )}
     </main>

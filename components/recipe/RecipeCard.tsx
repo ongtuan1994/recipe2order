@@ -10,10 +10,24 @@ interface Props {
     sellPrice: number | null;
     category: { id: string; name: string; color: string | null } | null;
     sizes: { id: string; sizeName: string }[];
+    /** Cost of goods % for the first size. null when any ingredient lacks a price. */
+    cogPercent: number | null;
+    cogCost: number | null;
   };
+  cogLabel: string;
 }
 
-export function RecipeCard({ recipe }: Props) {
+function cogColor(pct: number): string {
+  if (pct < 30) return "text-emerald-600";
+  if (pct < 50) return "text-amber-600";
+  return "text-red-600";
+}
+
+export function RecipeCard({ recipe, cogLabel }: Props) {
+  const cogTitle =
+    recipe.cogCost !== null && recipe.cogPercent !== null
+      ? `${cogLabel} ฿${recipe.cogCost.toFixed(2)} (${recipe.cogPercent.toFixed(1)}%)`
+      : undefined;
   return (
     <Link href={`/recipes/${recipe.id}`} className="block">
       <Card className="h-full hover:border-foreground/40 transition-colors">
@@ -25,11 +39,25 @@ export function RecipeCard({ recipe }: Props) {
                 <p className="text-xs text-muted-foreground truncate">{recipe.nameEn}</p>
               )}
             </div>
-            {recipe.sellPrice ? (
-              <span className="text-sm font-semibold tabular-nums">
-                ฿{recipe.sellPrice.toFixed(0)}
-              </span>
-            ) : null}
+            <div className="flex flex-col items-end gap-0.5 shrink-0">
+              {recipe.sellPrice ? (
+                <span className="text-sm font-semibold tabular-nums">
+                  ฿{recipe.sellPrice.toFixed(0)}
+                </span>
+              ) : null}
+              {recipe.cogPercent !== null ? (
+                <span
+                  title={cogTitle}
+                  className={`text-xs tabular-nums ${cogColor(recipe.cogPercent)}`}
+                >
+                  {cogLabel} {recipe.cogPercent.toFixed(0)}%
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground" title={cogLabel}>
+                  {cogLabel} —
+                </span>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-1">

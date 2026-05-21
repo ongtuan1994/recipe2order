@@ -1,60 +1,43 @@
-"use server";
-
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth-helpers";
 
-export async function getDashboardSummary() {
+export const getSalesTodayStat = cache(async () => {
   const userId = await getCurrentUserId();
   const now = new Date();
-  const in3Days = new Date(now.getTime() + 3 * 86400_000);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const agg = await prisma.sale.aggregate({
+    where: { userId, saleDate: { gte: today }, status: "COMPLETED" },
+    _sum: { totalAmount: true },
+    _count: { _all: true },
+  });
+  return {
+    count: agg._count._all,
+    total: agg._sum.totalAmount ?? 0,
+  };
+});
 
-  const [alertIngredients, expiringSoon, salesToday, totalRecipes] = await Promise.all([
-    prisma.ingredient.findMany({
-      where: { userId, isDeleted: false, minStockAlert: { not: null } },
-      select: { id: true, name: true, baseUnit: true, minStockAlert: true },
-    }),
-    prisma.stockBatch.findMany({
-      where: {
-        ingredient: { userId },
-        status: "ACTIVE",
-        expiresAt: { gte: now, lte: in3Days },
-      },
-      select: {
-        id: true,
-        quantity: true,
-        expiresAt: true,
-        ingredient: { select: { name: true, baseUnit: true } },
-      },
-      orderBy: { expiresAt: "asc" },
-      take: 20,
-    }),
-    prisma.sale.aggregate({
-      where: { userId, saleDate: { gte: today }, status: "COMPLETED" },
-      _sum: { totalAmount: true },
-      _count: { _all: true },
-    }),
-    prisma.recipe.count({
-      where: { userId, isDeleted: false, recipeType: "SALE" },
-    }),
-  ]);
+export const getLowStockStat = cache(async () => {
+  const userId = await getCurrentUserId();
+  const alertIngredients = await prisma.ingredient.findMany({
+    where: { userId, isDeleted: false, minStockAlert: { not: null } },
+    select: { id: true, name: true, baseUnit: true, minStockAlert: true },
+  });
+  if (alertIngredients.length === 0) return [];
 
-  // Aggregate active batch totals in DB instead of pulling every batch row.
-  const totals = alertIngredients.length
-    ? await prisma.stockBatch.groupBy({
-        by: ["ingredientId"],
-        where: {
-          status: "ACTIVE",
-          ingredientId: { in: alertIngredients.map((i) => i.id) },
-        },
-        _sum: { quantity: true },
-      })
-    : [];
+  const totals = await prisma.stockBatch.groupBy({
+    by: ["ingredientId"],
+    where: {
+      status: "ACTIVE",
+      ingredientId: { in: alertIngredients.map((i) => i.id) },
+    },
+    _sum: { quantity: true },
+  });
   const totalByIngredient = new Map(
     totals.map((t) => [t.ingredientId, t._sum.quantity ?? 0]),
   );
 
-  const lowStock = alertIngredients
+  return alertIngredients
     .map((i) => ({
       id: i.id,
       name: i.name,
@@ -64,20 +47,39 @@ export async function getDashboardSummary() {
     }))
     .filter((i) => i.total < i.threshold)
     .sort((a, b) => a.total - b.total);
+});
 
-  return {
-    lowStock,
-    expiringSoon: expiringSoon.map((b) => ({
-      id: b.id,
-      ingredientName: b.ingredient.name,
-      baseUnit: b.ingredient.baseUnit,
-      quantity: b.quantity,
-      expiresAt: b.expiresAt!,
-    })),
-    salesToday: {
-      count: salesToday._count._all,
-      total: salesToday._sum.totalAmount ?? 0,
+export const getExpiringSoonStat = cache(async () => {
+  const userId = await getCurrentUserId();
+  const now = new Date();
+  const in3Days = new Date(now.getTime() + 3 * 86400_000);
+  const batches = await prisma.stockBatch.findMany({
+    where: {
+      ingredient: { userId },
+      status: "ACTIVE",
+      expiresAt: { gte: now, lte: in3Days },
     },
-    totalRecipes,
-  };
-}
+    select: {
+      id: true,
+      quantity: true,
+      expiresAt: true,
+      ingredient: { select: { name: true, baseUnit: true } },
+    },
+    orderBy: { expiresAt: "asc" },
+    take: 20,
+  });
+  return batches.map((b) => ({
+    id: b.id,
+    ingredientName: b.ingredient.name,
+    baseUnit: b.ingredient.baseUnit,
+    quantity: b.quantity,
+    expiresAt: b.expiresAt!,
+  }));
+});
+
+export const getSaleRecipesCount = cache(async () => {
+  const userId = await getCurrentUserId();
+  return prisma.recipe.count({
+    where: { userId, isDeleted: false, recipeType: "SALE" },
+  });
+});

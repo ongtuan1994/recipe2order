@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { useForm, useFieldArray, type Resolver } from "react-hook-form";
+import { useForm, useFieldArray, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -64,7 +64,7 @@ export function SaleForm({ sizes, labels }: Props) {
   });
 
   const items = useFieldArray({ control: form.control, name: "items" });
-  const watched = form.watch("items");
+  const watched = useWatch({ control: form.control, name: "items" });
 
   const total = watched.reduce((sum, it) => {
     const size = sizes.find((s) => s.id === it.recipeSizeId);

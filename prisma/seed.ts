@@ -38,7 +38,7 @@ async function main() {
     },
   });
 
-  const teaCategory = await prisma.category.create({
+  await prisma.category.create({
     data: {
       name: 'ชา',
       nameEn: 'Tea',
@@ -87,7 +87,7 @@ async function main() {
 
   // ===== 4. Ingredient Variants (for price comparison) =====
   // ตัวอย่าง: นมสด 2 ยี่ห้อ
-  const milkVariant1 = await prisma.ingredientVariant.create({
+  await prisma.ingredientVariant.create({
     data: {
       ingredientId: rawIngredients['นมสด'],
       brand: 'Mali',

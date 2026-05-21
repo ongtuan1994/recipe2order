@@ -18,7 +18,7 @@ export default async function RecipesPage() {
         <h1 className="text-2xl font-semibold">{t("saleRecipes")}</h1>
         <div className="flex gap-2">
           <Button asChild variant="outline" className="gap-1">
-            <a href="/api/export/recipes">
+            <a href="/api/export/recipes" download>
               <Download className="h-4 w-4" /> Export
             </a>
           </Button>

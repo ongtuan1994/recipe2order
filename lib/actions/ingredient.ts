@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath, unstable_cache, updateTag } from "next/cache";
-import { IngredientType } from "@prisma/client";
+import { IngredientType, type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth-helpers";
 import { convert, getBaseUnit } from "@/lib/units/conversion";
@@ -31,10 +31,17 @@ export async function listIngredientsForPicker() {
   )();
 }
 
-export async function listIngredients() {
+export async function listIngredients(opts: { search?: string } = {}) {
   const userId = await getCurrentUserId();
+  const where: Prisma.IngredientWhereInput = { userId, isDeleted: false };
+  if (opts.search) {
+    where.OR = [
+      { name: { contains: opts.search, mode: "insensitive" } },
+      { nameEn: { contains: opts.search, mode: "insensitive" } },
+    ];
+  }
   return prisma.ingredient.findMany({
-    where: { userId, isDeleted: false },
+    where,
     select: {
       id: true,
       name: true,

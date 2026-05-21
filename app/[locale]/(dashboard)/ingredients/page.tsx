@@ -12,11 +12,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listIngredients } from "@/lib/actions/ingredient";
+import { SearchInput } from "@/components/shared/SearchInput";
 
-export default async function IngredientsPage() {
-  const [t, items] = await Promise.all([
+export default async function IngredientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  const [t, tCommon, items] = await Promise.all([
     getTranslations("ingredient"),
-    listIngredients(),
+    getTranslations("common"),
+    listIngredients({ search: q }),
   ]);
 
   return (
@@ -37,6 +44,8 @@ export default async function IngredientsPage() {
           </Button>
         </div>
       </div>
+
+      <SearchInput key={q ?? ""} placeholder={tCommon("search")} />
 
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">

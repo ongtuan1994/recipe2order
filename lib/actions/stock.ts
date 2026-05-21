@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { BatchSource, MovementType } from "@prisma/client";
+import { BatchSource, MovementType, type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth-helpers";
 import {
@@ -11,10 +11,17 @@ import {
   type DiscardBatchInput,
 } from "@/lib/validations/stock";
 
-export async function listStock() {
+export async function listStock(opts: { search?: string } = {}) {
   const userId = await getCurrentUserId();
+  const where: Prisma.IngredientWhereInput = { userId, isDeleted: false };
+  if (opts.search) {
+    where.OR = [
+      { name: { contains: opts.search, mode: "insensitive" } },
+      { nameEn: { contains: opts.search, mode: "insensitive" } },
+    ];
+  }
   const ingredients = await prisma.ingredient.findMany({
-    where: { userId, isDeleted: false },
+    where,
     select: {
       id: true,
       name: true,

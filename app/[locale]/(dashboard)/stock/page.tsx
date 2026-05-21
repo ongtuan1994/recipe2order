@@ -5,6 +5,7 @@ import { listStock } from "@/lib/actions/stock";
 import { listIngredientsForPicker } from "@/lib/actions/ingredient";
 import { AddBatchDialog } from "@/components/stock/AddBatchDialog";
 import { DiscardBatchButton } from "@/components/stock/DiscardBatchButton";
+import { SearchInput } from "@/components/shared/SearchInput";
 
 function daysUntil(date: Date | null): number | null {
   if (!date) return null;
@@ -16,13 +17,18 @@ function formatDate(d: Date | null): string {
   return d.toISOString().slice(0, 10);
 }
 
-export default async function StockPage() {
+export default async function StockPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const t = await getTranslations("stock");
   const tCommon = await getTranslations("common");
   const tIngredient = await getTranslations("ingredient");
 
   const [stock, ingredients] = await Promise.all([
-    listStock(),
+    listStock({ search: q }),
     listIngredientsForPicker(),
   ]);
 
@@ -51,6 +57,8 @@ export default async function StockPage() {
           }}
         />
       </div>
+
+      <SearchInput key={q ?? ""} placeholder={tCommon("search")} />
 
       <div className="rounded-lg border divide-y bg-card">
         {stock.length === 0 && (

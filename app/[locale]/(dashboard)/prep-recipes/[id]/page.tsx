@@ -2,9 +2,10 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getPrepRecipe } from "@/lib/actions/prep-recipe";
+import { getPrepRecipe, getPrepRecipeNeighbors } from "@/lib/actions/prep-recipe";
 import { ProductionForm } from "@/components/prep/ProductionForm";
 import { PrepRecipeActions } from "@/components/prep/PrepRecipeActions";
+import { DetailPager } from "@/components/shared/DetailPager";
 
 export default async function PrepRecipeDetailPage({
   params,
@@ -12,8 +13,9 @@ export default async function PrepRecipeDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [recipe, t, tRecipe, tCommon] = await Promise.all([
+  const [recipe, neighbors, t, tRecipe, tCommon] = await Promise.all([
     getPrepRecipe(id),
+    getPrepRecipeNeighbors(id),
     getTranslations("prep"),
     getTranslations("recipe"),
     getTranslations("common"),
@@ -22,6 +24,13 @@ export default async function PrepRecipeDetailPage({
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 max-w-4xl space-y-6">
+      <DetailPager
+        prevHref={neighbors.prevId ? `/prep-recipes/${neighbors.prevId}` : null}
+        nextHref={neighbors.nextId ? `/prep-recipes/${neighbors.nextId}` : null}
+        position={neighbors.position}
+        total={neighbors.total}
+        labels={{ previous: tCommon("previous"), next: tCommon("next") }}
+      />
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{recipe.name}</h1>

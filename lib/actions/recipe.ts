@@ -51,6 +51,23 @@ export async function listSaleRecipes(opts: ListRecipesOptions = {}) {
   });
 }
 
+/** Returns prev/next sale-recipe ids in the same order the list page uses. */
+export async function getSaleRecipeNeighbors(currentId: string) {
+  const userId = await getCurrentUserId();
+  const rows = await prisma.recipe.findMany({
+    where: { userId, isDeleted: false, recipeType: RecipeType.SALE },
+    select: { id: true },
+    orderBy: { updatedAt: "desc" },
+  });
+  const idx = rows.findIndex((r) => r.id === currentId);
+  return {
+    prevId: idx > 0 ? rows[idx - 1].id : null,
+    nextId: idx >= 0 && idx < rows.length - 1 ? rows[idx + 1].id : null,
+    position: idx >= 0 ? idx + 1 : 0,
+    total: rows.length,
+  };
+}
+
 export async function getSaleRecipe(id: string) {
   const userId = await getCurrentUserId();
   return prisma.recipe.findFirst({

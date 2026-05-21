@@ -48,6 +48,23 @@ export async function listIngredients() {
   });
 }
 
+/** Returns prev/next ingredient ids in the same order the list page uses. */
+export async function getIngredientNeighbors(currentId: string) {
+  const userId = await getCurrentUserId();
+  const rows = await prisma.ingredient.findMany({
+    where: { userId, isDeleted: false },
+    select: { id: true },
+    orderBy: [{ type: "asc" }, { name: "asc" }],
+  });
+  const idx = rows.findIndex((r) => r.id === currentId);
+  return {
+    prevId: idx > 0 ? rows[idx - 1].id : null,
+    nextId: idx >= 0 && idx < rows.length - 1 ? rows[idx + 1].id : null,
+    position: idx >= 0 ? idx + 1 : 0,
+    total: rows.length,
+  };
+}
+
 export async function getIngredient(id: string) {
   const userId = await getCurrentUserId();
   return prisma.ingredient.findFirst({

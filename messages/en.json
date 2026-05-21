@@ -15,7 +15,9 @@
     "back": "Back",
     "confirm": "Confirm",
     "duplicate": "Duplicate",
-    "all": "All"
+    "all": "All",
+    "previous": "Previous",
+    "next": "Next"
   },
   "nav": {
     "dashboard": "Dashboard",

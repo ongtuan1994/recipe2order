@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getSaleRecipe } from "@/lib/actions/recipe";
+import { getSaleRecipe, getSaleRecipeNeighbors } from "@/lib/actions/recipe";
 import { RecipeActions } from "@/components/recipe/RecipeActions";
+import { DetailPager } from "@/components/shared/DetailPager";
 
 export default async function RecipeDetailPage({
   params,
@@ -11,8 +12,9 @@ export default async function RecipeDetailPage({
   params: Promise<{ id: string; locale: string }>;
 }) {
   const { id, locale } = await params;
-  const [recipe, t, tCommon] = await Promise.all([
+  const [recipe, neighbors, t, tCommon] = await Promise.all([
     getSaleRecipe(id),
+    getSaleRecipeNeighbors(id),
     getTranslations("recipe"),
     getTranslations("common"),
   ]);
@@ -20,6 +22,13 @@ export default async function RecipeDetailPage({
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 max-w-4xl space-y-6">
+      <DetailPager
+        prevHref={neighbors.prevId ? `/recipes/${neighbors.prevId}` : null}
+        nextHref={neighbors.nextId ? `/recipes/${neighbors.nextId}` : null}
+        position={neighbors.position}
+        total={neighbors.total}
+        labels={{ previous: tCommon("previous"), next: tCommon("next") }}
+      />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{recipe.name}</h1>

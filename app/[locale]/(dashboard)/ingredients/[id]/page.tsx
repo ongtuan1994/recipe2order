@@ -2,9 +2,10 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getIngredient } from "@/lib/actions/ingredient";
+import { getIngredient, getIngredientNeighbors } from "@/lib/actions/ingredient";
 import { VariantsPanel } from "@/components/ingredient/VariantsPanel";
 import { IngredientActions } from "@/components/ingredient/IngredientActions";
+import { DetailPager } from "@/components/shared/DetailPager";
 
 export default async function IngredientDetailPage({
   params,
@@ -12,8 +13,9 @@ export default async function IngredientDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [ingredient, t, tCommon] = await Promise.all([
+  const [ingredient, neighbors, t, tCommon] = await Promise.all([
     getIngredient(id),
+    getIngredientNeighbors(id),
     getTranslations("ingredient"),
     getTranslations("common"),
   ]);
@@ -21,6 +23,13 @@ export default async function IngredientDetailPage({
 
   return (
     <main className="flex-1 p-6 pb-20 md:pb-6 max-w-4xl space-y-6">
+      <DetailPager
+        prevHref={neighbors.prevId ? `/ingredients/${neighbors.prevId}` : null}
+        nextHref={neighbors.nextId ? `/ingredients/${neighbors.nextId}` : null}
+        position={neighbors.position}
+        total={neighbors.total}
+        labels={{ previous: tCommon("previous"), next: tCommon("next") }}
+      />
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{ingredient.name}</h1>

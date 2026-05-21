@@ -3,13 +3,20 @@ import { Link } from "@/i18n/navigation";
 import { Plus, ChefHat, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { listSaleRecipes } from "@/lib/actions/recipe";
+import { listCategories } from "@/lib/actions/category";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
+import { CategoryFilter } from "@/components/recipe/CategoryFilter";
 
-export default async function RecipesPage() {
-  const [t, tCommon, recipes] = await Promise.all([
+export default async function RecipesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category } = await searchParams;
+  const [t, recipes, categories] = await Promise.all([
     getTranslations("recipe"),
-    getTranslations("common"),
-    listSaleRecipes(),
+    listSaleRecipes({ categoryId: category }),
+    listCategories(),
   ]);
 
   return (
@@ -30,6 +37,11 @@ export default async function RecipesPage() {
           </Button>
         </div>
       </div>
+
+      <CategoryFilter
+        categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+        allLabel={t("allCategories")}
+      />
 
       {recipes.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
@@ -58,8 +70,6 @@ export default async function RecipesPage() {
           ))}
         </div>
       )}
-      {/* tCommon kept for future search/filter UI */}
-      <span className="hidden">{tCommon("search")}</span>
     </main>
   );
 }

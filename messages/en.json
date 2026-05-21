@@ -49,6 +49,7 @@
     "name": "Recipe name",
     "nameEn": "Name (English)",
     "category": "Category",
+    "allCategories": "All categories",
     "uncategorized": "Uncategorized",
     "newCategory": "New category",
     "sellPrice": "Sell price",

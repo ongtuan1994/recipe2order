@@ -49,6 +49,7 @@
     "name": "ชื่อสูตร",
     "nameEn": "ชื่อ (อังกฤษ)",
     "category": "หมวดหมู่",
+    "allCategories": "ทุกหมวดหมู่",
     "uncategorized": "ไม่ระบุ",
     "newCategory": "หมวดหมู่ใหม่",
     "sellPrice": "ราคาขาย",

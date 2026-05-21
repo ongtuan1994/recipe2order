@@ -190,7 +190,7 @@ async function main() {
   console.log(`📋 Adding menu items for ${user.email}`);
 
   // ---- Categories ----
-  const catCoffee = await upsertCategory(userId, "กาแฟ", {
+  await upsertCategory(userId, "กาแฟ", {
     nameEn: "Coffee",
     color: "#8B4513",
     icon: "☕",

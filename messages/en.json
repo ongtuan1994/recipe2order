@@ -31,17 +31,9 @@
   },
   "auth": {
     "login": "Log in",
-    "register": "Sign up",
     "logout": "Log out",
-    "email": "Email",
     "password": "Password",
-    "name": "Name",
-    "loginWithGoogle": "Continue with Google",
-    "invalidCredentials": "Invalid email or password",
-    "noAccount": "Don't have an account?",
-    "haveAccount": "Already have an account?",
-    "registerSuccess": "Signed up! Logging you in...",
-    "emailTaken": "An account with this email already exists"
+    "invalidCredentials": "Incorrect password"
   },
   "recipe": {
     "title": "Recipes",

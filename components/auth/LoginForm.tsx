@@ -20,10 +20,8 @@ import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 
 interface Props {
   labels: {
-    email: string;
     password: string;
     submit: string;
-    googleSignIn: string;
     invalidCredentials: string;
   };
 }
@@ -37,14 +35,13 @@ export function LoginForm({ labels }: Props) {
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { password: "" },
   });
 
   const onSubmit = (values: LoginInput) => {
     setServerError(null);
     startTransition(async () => {
       const res = await signIn("credentials", {
-        email: values.email,
         password: values.password,
         redirect: false,
       });
@@ -63,25 +60,17 @@ export function LoginForm({ labels }: Props) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{labels.email}</FormLabel>
-              <FormControl>
-                <Input type="email" autoComplete="email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{labels.password}</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="current-password" {...field} />
+                <Input
+                  type="password"
+                  autoComplete="current-password"
+                  autoFocus
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -94,15 +83,6 @@ export function LoginForm({ labels }: Props) {
         )}
         <Button type="submit" className="w-full" disabled={isPending}>
           {labels.submit}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => signIn("google", { callbackUrl })}
-          disabled={isPending}
-        >
-          {labels.googleSignIn}
         </Button>
       </form>
     </Form>

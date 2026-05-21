@@ -31,17 +31,9 @@
   },
   "auth": {
     "login": "เข้าสู่ระบบ",
-    "register": "สมัครสมาชิก",
     "logout": "ออกจากระบบ",
-    "email": "อีเมล",
     "password": "รหัสผ่าน",
-    "name": "ชื่อ",
-    "loginWithGoogle": "เข้าสู่ระบบด้วย Google",
-    "invalidCredentials": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
-    "noAccount": "ยังไม่มีบัญชี?",
-    "haveAccount": "มีบัญชีอยู่แล้ว?",
-    "registerSuccess": "สมัครสำเร็จ! กำลังเข้าสู่ระบบ...",
-    "emailTaken": "อีเมลนี้ถูกใช้แล้ว"
+    "invalidCredentials": "รหัสผ่านไม่ถูกต้อง"
   },
   "recipe": {
     "title": "สูตร",

@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 
 export default async function LoginPage() {
@@ -15,19 +14,11 @@ export default async function LoginPage() {
         </div>
         <LoginForm
           labels={{
-            email: t("email"),
             password: t("password"),
             submit: t("login"),
-            googleSignIn: t("loginWithGoogle"),
             invalidCredentials: t("invalidCredentials"),
           }}
         />
-        <p className="text-center text-sm text-muted-foreground">
-          {t("noAccount")}{" "}
-          <Link href="/register" className="font-medium text-foreground hover:underline">
-            {t("register")}
-          </Link>
-        </p>
       </div>
     </main>
   );

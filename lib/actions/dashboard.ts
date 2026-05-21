@@ -9,10 +9,10 @@ export async function getDashboardSummary() {
   const in3Days = new Date(now.getTime() + 3 * 86400_000);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const [ingredients, expiringSoon, salesToday, totalRecipes] = await Promise.all([
+  const [alertIngredients, expiringSoon, salesToday, totalRecipes] = await Promise.all([
     prisma.ingredient.findMany({
       where: { userId, isDeleted: false, minStockAlert: { not: null } },
-      include: { batches: { where: { status: "ACTIVE" }, select: { quantity: true } } },
+      select: { id: true, name: true, baseUnit: true, minStockAlert: true },
     }),
     prisma.stockBatch.findMany({
       where: {
@@ -20,7 +20,10 @@ export async function getDashboardSummary() {
         status: "ACTIVE",
         expiresAt: { gte: now, lte: in3Days },
       },
-      include: {
+      select: {
+        id: true,
+        quantity: true,
+        expiresAt: true,
         ingredient: { select: { name: true, baseUnit: true } },
       },
       orderBy: { expiresAt: "asc" },
@@ -36,13 +39,28 @@ export async function getDashboardSummary() {
     }),
   ]);
 
-  const lowStock = ingredients
+  // Aggregate active batch totals in DB instead of pulling every batch row.
+  const totals = alertIngredients.length
+    ? await prisma.stockBatch.groupBy({
+        by: ["ingredientId"],
+        where: {
+          status: "ACTIVE",
+          ingredientId: { in: alertIngredients.map((i) => i.id) },
+        },
+        _sum: { quantity: true },
+      })
+    : [];
+  const totalByIngredient = new Map(
+    totals.map((t) => [t.ingredientId, t._sum.quantity ?? 0]),
+  );
+
+  const lowStock = alertIngredients
     .map((i) => ({
       id: i.id,
       name: i.name,
       baseUnit: i.baseUnit,
       threshold: i.minStockAlert!,
-      total: i.batches.reduce((s, b) => s + b.quantity, 0),
+      total: totalByIngredient.get(i.id) ?? 0,
     }))
     .filter((i) => i.total < i.threshold)
     .sort((a, b) => a.total - b.total);

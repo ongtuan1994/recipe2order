@@ -1,16 +1,27 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache, updateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth-helpers";
 import { categorySchema, type CategoryInput } from "@/lib/validations/category";
 
+function categoriesTag(userId: string) {
+  return `categories:${userId}`;
+}
+
 export async function listCategories() {
   const userId = await getCurrentUserId();
-  return prisma.category.findMany({
-    where: { userId },
-    orderBy: [{ order: "asc" }, { name: "asc" }],
-  });
+  const tag = categoriesTag(userId);
+  return unstable_cache(
+    () =>
+      prisma.category.findMany({
+        where: { userId },
+        select: { id: true, name: true, color: true },
+        orderBy: [{ order: "asc" }, { name: "asc" }],
+      }),
+    [tag],
+    { tags: [tag], revalidate: 300 },
+  )();
 }
 
 export type CreateCategoryResult =
@@ -35,6 +46,7 @@ export async function createCategory(input: CategoryInput): Promise<CreateCatego
     select: { id: true, name: true },
   });
 
+  updateTag(categoriesTag(userId));
   revalidatePath("/recipes");
   return { ok: true, id: category.id, name: category.name };
 }
@@ -42,5 +54,6 @@ export async function createCategory(input: CategoryInput): Promise<CreateCatego
 export async function deleteCategory(id: string) {
   const userId = await getCurrentUserId();
   await prisma.category.delete({ where: { id, userId } });
+  updateTag(categoriesTag(userId));
   revalidatePath("/recipes");
 }

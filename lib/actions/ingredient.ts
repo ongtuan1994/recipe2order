@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache, updateTag } from "next/cache";
 import { IngredientType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth-helpers";
@@ -12,13 +12,23 @@ import {
   type VariantInput,
 } from "@/lib/validations/ingredient";
 
+function pickerTag(userId: string) {
+  return `ingredients-picker:${userId}`;
+}
+
 export async function listIngredientsForPicker() {
   const userId = await getCurrentUserId();
-  return prisma.ingredient.findMany({
-    where: { userId, isDeleted: false },
-    select: { id: true, name: true, nameEn: true, baseUnit: true, type: true },
-    orderBy: [{ type: "asc" }, { name: "asc" }],
-  });
+  const tag = pickerTag(userId);
+  return unstable_cache(
+    () =>
+      prisma.ingredient.findMany({
+        where: { userId, isDeleted: false },
+        select: { id: true, name: true, baseUnit: true, type: true },
+        orderBy: [{ type: "asc" }, { name: "asc" }],
+      }),
+    [tag],
+    { tags: [tag], revalidate: 300 },
+  )();
 }
 
 export async function listIngredients() {
@@ -79,6 +89,7 @@ export async function createIngredient(input: IngredientInput): Promise<Ingredie
     select: { id: true },
   });
 
+  updateTag(pickerTag(userId));
   revalidatePath("/ingredients");
   return { ok: true, id: ingredient.id };
 }
@@ -110,6 +121,7 @@ export async function updateIngredient(
     },
   });
 
+  updateTag(pickerTag(userId));
   revalidatePath("/ingredients");
   revalidatePath(`/ingredients/${id}`);
   return { ok: true, id };
@@ -121,6 +133,7 @@ export async function deleteIngredient(id: string) {
     where: { id, userId, isDeleted: false },
     data: { isDeleted: true },
   });
+  updateTag(pickerTag(userId));
   revalidatePath("/ingredients");
 }
 
